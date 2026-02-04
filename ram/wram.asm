@@ -493,7 +493,14 @@ SECTION UNION "Overworld Map", WRAM0
 wLinkData::
 
 ; player's party data, formatted for link transfer (Gen 2 link session)
-wLinkSendParty:: ds SERIAL_PREAMBLE_LENGTH + LINK_PARTY_DATA_LENGTH + SERIAL_PADDING_LENGTH
+wLinkSendParty::
+	ds SERIAL_PREAMBLE_LENGTH
+	ds NAME_LENGTH
+	ds (1 + PARTY_LENGTH + 1)
+	ds 2
+	ds (PARTYMON_STRUCT_LENGTH + NAME_LENGTH * 2) * PARTY_LENGTH
+	ds SERIAL_PADDING_LENGTH
+wLinkSendPartyEnd::
 
 	ds 50
 
@@ -502,17 +509,19 @@ wLinkSendMail::
 wLinkSendMailPreamble:: ds SERIAL_MAIL_PREAMBLE_LENGTH
 wLinkSendMailMessages:: ds (MAIL_MSG_LENGTH + 1) * PARTY_LENGTH
 wLinkSendMailMetadata:: ds (MAIL_STRUCT_LENGTH - (MAIL_MSG_LENGTH + 1)) * PARTY_LENGTH
-wLinkSendMailPatchSet:: ds SERIAL_MAIL_PATCH_LIST_LENGTH
+wLinkSendMailPatchSet:: ds (MAIL_STRUCT_LENGTH - (MAIL_MSG_LENGTH + 1) + 3) * PARTY_LENGTH + 1
 wLinkSendMailEnd::
 
 	ds 10
 
 ; during a link session, the other player's raw mail data is initially stored here
 wLinkReceivedMail::
-	ds SERIAL_MAIL_PREAMBLE_LENGTH + MAIL_STRUCT_LENGTH * PARTY_LENGTH + SERIAL_MAIL_PATCH_LIST_LENGTH
+wLinkReceivedMailMessages:: ds (MAIL_MSG_LENGTH + 1) * PARTY_LENGTH
+wLinkReceivedMailMetadata:: ds (MAIL_STRUCT_LENGTH - (MAIL_MSG_LENGTH + 1)) * PARTY_LENGTH
+wLinkReceivedMailPatchSet:: ds (MAIL_STRUCT_LENGTH - (MAIL_MSG_LENGTH + 1) + 3) * PARTY_LENGTH + 1
 wLinkReceivedMailEnd::
 
-	ds 10 ; unused but written to (see engine/link/link.asm)
+	ds 15 ; unused but written to (see engine/link/link.asm)
 
 wLinkDataEnd::
 
@@ -520,7 +529,13 @@ wLinkDataEnd::
 SECTION UNION "Overworld Map", WRAM0
 
 ; player's party data, formatted for link transfer (Time Capsule link session)
-wLinkSendTimeCapsuleParty:: ds SERIAL_PREAMBLE_LENGTH + LINK_TIME_CAPSULE_PARTY_DATA_LENGTH + SERIAL_PADDING_LENGTH
+wLinkSendTimeCapsuleParty::
+	ds SERIAL_PREAMBLE_LENGTH
+	ds NAME_LENGTH
+	ds (1 + PARTY_LENGTH + 1)
+	ds (REDMON_STRUCT_LENGTH + NAME_LENGTH * 2) * PARTY_LENGTH
+	ds SERIAL_PADDING_LENGTH
+wLinkSendTimeCapsulePartyEnd::
 
 
 SECTION UNION "Overworld Map", WRAM0
@@ -558,16 +573,6 @@ wLinkPlayerPartyMon{d:n}Nickname:: ds MON_NAME_LENGTH
 endr
 
 wLinkPartyDataEnd::
-
-
-SECTION UNION "Overworld Map", WRAM0
-
-	ds 900
-
-; received mail data, stripped of the serial preamble
-wLinkReceivedMailMessages:: ds (MAIL_MSG_LENGTH + 1) * PARTY_LENGTH
-wLinkReceivedMailMetadata:: ds (MAIL_STRUCT_LENGTH - (MAIL_MSG_LENGTH + 1)) * PARTY_LENGTH
-wLinkReceivedMailPatchSet:: ds SERIAL_MAIL_PATCH_LIST_LENGTH
 
 
 SECTION UNION "Overworld Map", WRAM0
@@ -2802,7 +2807,7 @@ wMagikarpRecordHoldersName:: ds NAME_LENGTH
 ; This union spans 451 bytes.
 UNION
 ; during a link session, other player's raw party data is initially stored here
-wLinkReceivedPartyData:: ds SERIAL_PREAMBLE_LENGTH + LINK_PARTY_DATA_LENGTH + SERIAL_PADDING_LENGTH
+wLinkReceivedPartyData:: ds SERIAL_PREAMBLE_LENGTH + NAME_LENGTH + (1 + PARTY_LENGTH + 1) + 2 + (PARTYMON_STRUCT_LENGTH + NAME_LENGTH * 2) * PARTY_LENGTH + SERIAL_PADDING_LENGTH
 wLinkReceivedPartyEnd:: db
 
 NEXTU
