@@ -488,13 +488,15 @@ wUnusedJigglypuffNoteXCoord:: db
 
 
 SECTION UNION "Overworld Map", WRAM0
-; This union is 1300 bytes, the largest of all link data unions inside "Overworld Map"
+
+; This section union is 1300 bytes, the largest of all link data unions inside "Overworld Map"
 wLinkData::
 
 ; player's party data, formatted for link transfer (Gen 2 link session)
 wLinkSendParty:: ds SERIAL_PREAMBLE_LENGTH + LINK_PARTY_DATA_LENGTH + SERIAL_PADDING_LENGTH
 
 	ds 50
+
 ; player's party mail, formatted for link transfer, during a link session
 wLinkSendMail::
 wLinkSendMailPreamble:: ds SERIAL_MAIL_PREAMBLE_LENGTH
@@ -502,12 +504,14 @@ wLinkSendMailMessages:: ds (MAIL_MSG_LENGTH + 1) * PARTY_LENGTH
 wLinkSendMailMetadata:: ds (MAIL_STRUCT_LENGTH - (MAIL_MSG_LENGTH + 1)) * PARTY_LENGTH
 wLinkSendMailPatchSet:: ds SERIAL_MAIL_PATCH_LIST_LENGTH
 wLinkSendMailEnd::
+
 	ds 10
 
 ; during a link session, the other player's raw mail data is initially stored here
 wLinkReceivedMail::
 	ds SERIAL_MAIL_PREAMBLE_LENGTH + MAIL_STRUCT_LENGTH * PARTY_LENGTH + SERIAL_MAIL_PATCH_LIST_LENGTH
 wLinkReceivedMailEnd::
+
 	ds 10 ; unused but written to (see engine/link/link.asm)
 
 wLinkDataEnd::
@@ -521,8 +525,9 @@ wLinkSendTimeCapsuleParty:: ds SERIAL_PREAMBLE_LENGTH + LINK_TIME_CAPSULE_PARTY_
 
 SECTION UNION "Overworld Map", WRAM0
 
-; after the initial link session, the other player's party and mail data
+; after the initial link session, the other player's party data
 ; is temporarily stored here before applying patch data
+wLinkPartyData::
 
 ; link player's name and party species are not patched,
 ; as they normally don't contain SERIAL_NO_DATA_BYTE
@@ -531,7 +536,6 @@ wLinkPartyCount:: db
 wLinkPartySpecies:: ds PARTY_LENGTH
 wLinkPartyEnd:: db ; older code doesn't check PartyCount
 
-UNION
 ; Gen 2 link player party data
 wLinkPlayerPatchedData::
 wLinkPlayerID:: dw
@@ -553,14 +557,32 @@ for n, 1, PARTY_LENGTH + 1
 wLinkPlayerPartyMon{d:n}Nickname:: ds MON_NAME_LENGTH
 endr
 
-	ds 459
+wLinkPartyDataEnd::
+
+
+SECTION UNION "Overworld Map", WRAM0
+
+	ds 900
 
 ; received mail data, stripped of the serial preamble
 wLinkReceivedMailMessages:: ds (MAIL_MSG_LENGTH + 1) * PARTY_LENGTH
 wLinkReceivedMailMetadata:: ds (MAIL_STRUCT_LENGTH - (MAIL_MSG_LENGTH + 1)) * PARTY_LENGTH
 wLinkReceivedMailPatchSet:: ds SERIAL_MAIL_PATCH_LIST_LENGTH
 
-NEXTU
+
+SECTION UNION "Overworld Map", WRAM0
+
+; after the initial link session, the other player's party data
+; is temporarily stored here before applying patch data
+wLinkTimeCapsulePartyData::
+
+; link player's name and party species are not patched,
+; as they normally don't contain SERIAL_NO_DATA_BYTE
+wLinkTimeCapsulePlayerName:: ds NAME_LENGTH
+wLinkTimeCapsulePartyCount:: db
+wLinkTimeCapsulePartySpecies:: ds PARTY_LENGTH
+wLinkTimeCapsulePartyEnd:: db ; older code doesn't check PartyCount
+
 ; Gen 1 (Time Capsule) link player party data
 wTimeCapsulePatchedData::
 ; wTimeCapsulePartyMon1 - wTimeCapsulePartyMon6
@@ -581,7 +603,8 @@ wTimeCapsulePartyMon{d:n}Nickname:: ds MON_NAME_LENGTH
 endr
 
 	ds SERIAL_PADDING_LENGTH ; unused but written to (see engine/link/link.asm)
-ENDU
+
+wLinkTimeCapsulePartyDataEnd::
 
 
 SECTION UNION "Overworld Map", WRAM0

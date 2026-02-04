@@ -120,9 +120,8 @@ endc
 	cp PARTY_LENGTH + 1
 	jp nc, ExitLinkCommunications
 
-	ld de, wLinkPlayerName
-	; this should be "ld bc, LINK_TIME_CAPSULE_PARTY_DATA_LENGTH"
-	ld bc, LINK_TIME_CAPSULE_PARTY_DATA_LENGTH + SERIAL_PADDING_LENGTH
+	ld de, wLinkTimeCapsulePartyData
+	ld bc, wLinkTimeCapsulePartyDataEnd - wLinkTimeCapsulePartyData
 	call Link_CopyOTData
 
 	ld de, wOTPatchLists
@@ -156,7 +155,7 @@ endc
 	dec c
 	jr nz, .loop
 
-	ld hl, wLinkPlayerName
+	ld hl, wLinkTimeCapsulePlayerName
 	ld de, wOTPlayerName
 	ld bc, NAME_LENGTH
 	call CopyBytes
@@ -289,7 +288,7 @@ endc
 
 	ld hl, wLinkReceivedPartyData
 	call Link_FindFirstNonControlCharacter_SkipZero
-	ld de, wLinkPlayerName
+	ld de, wLinkPartyData
 	ld bc, LINK_PARTY_DATA_LENGTH
 	call Link_CopyOTData
 
