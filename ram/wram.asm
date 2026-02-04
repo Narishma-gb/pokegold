@@ -494,12 +494,25 @@ wLinkData::
 
 ; player's party data, formatted for link transfer (Gen 2 link session)
 wLinkSendParty::
-	ds SERIAL_PREAMBLE_LENGTH
-	ds NAME_LENGTH
-	ds (1 + PARTY_LENGTH + 1)
-	ds 2
-	ds (PARTYMON_STRUCT_LENGTH + NAME_LENGTH * 2) * PARTY_LENGTH
-	ds SERIAL_PADDING_LENGTH
+wLinkSendPartyPreamble:: ds SERIAL_PREAMBLE_LENGTH
+wLinkSendPartyPlayerName:: ds NAME_LENGTH
+wLinkSendPartyPartyCount::   db
+wLinkSendPartyPartySpecies:: ds PARTY_LENGTH
+wLinkSendPartyPartyEnd::     db ; older code doesn't check PartyCount
+wLinkSendPartyPlayerID:: dw
+; wLinkSendPartyPlayerPartyMon1 - wLinkSendPartyPlayerPartyMon6
+for n, 1, PARTY_LENGTH + 1
+wLinkSendPartyPlayerPartyMon{d:n}:: party_struct wLinkSendPartyPlayerPartyMon{d:n}
+endr
+; wLinkSendPartyPlayerPartyMon1OT - wLinkSendPartyPlayerPartyMon6OT
+for n, 1, PARTY_LENGTH + 1
+wLinkSendPartyPlayerPartyMon{d:n}OT:: ds NAME_LENGTH
+endr
+; wLinkSendPartyPlayerPartyMon1Nickname - wLinkSendPartyPlayerPartyMon6Nickname
+for n, 1, PARTY_LENGTH + 1
+wLinkSendPartyPlayerPartyMon{d:n}Nickname:: ds MON_NAME_LENGTH
+endr
+wLinkSendPartyPadding:: ds SERIAL_PADDING_LENGTH
 wLinkSendPartyEnd::
 
 	ds 50
@@ -530,11 +543,26 @@ SECTION UNION "Overworld Map", WRAM0
 
 ; player's party data, formatted for link transfer (Time Capsule link session)
 wLinkSendTimeCapsuleParty::
-	ds SERIAL_PREAMBLE_LENGTH
-	ds NAME_LENGTH
-	ds (1 + PARTY_LENGTH + 1)
-	ds (REDMON_STRUCT_LENGTH + NAME_LENGTH * 2) * PARTY_LENGTH
-	ds SERIAL_PADDING_LENGTH
+wLinkSendTimeCapsulePartyPreamble:: ds SERIAL_PREAMBLE_LENGTH
+wLinkSendTimeCapsulePartyPlayerName:: ds NAME_LENGTH
+wLinkSendTimeCapsulePartyPartyCount::   db
+wLinkSendTimeCapsulePartyPartySpecies:: ds PARTY_LENGTH
+wLinkSendTimeCapsulePartyPartyEnd::     db ; older code doesn't check PartyCount
+; wLinkSendTimeCapsulePartyMon1 - wLinkSendTimeCapsulePartyMon6
+for n, 1, PARTY_LENGTH + 1
+wLinkSendTimeCapsulePartyMon{d:n}:: red_party_struct wLinkSendTimeCapsulePartyMon{d:n}
+endr
+wLinkSendTimeCapsulePartyMonOTs::
+; wLinkSendTimeCapsulePartyMon1OT - wLinkSendTimeCapsulePartyMon6OT
+for n, 1, PARTY_LENGTH + 1
+wLinkSendTimeCapsulePartyMon{d:n}OT:: ds NAME_LENGTH
+endr
+wLinkSendTimeCapsulePartyMonNicknames::
+; wLinkSendTimeCapsulePartyMon1Nickname - wLinkSendTimeCapsulePartyMon6Nickname
+for n, 1, PARTY_LENGTH + 1
+wLinkSendTimeCapsulePartyMon{d:n}Nickname:: ds MON_NAME_LENGTH
+endr
+wLinkSendTimeCapsulePartyPadding:: ds SERIAL_PADDING_LENGTH
 wLinkSendTimeCapsulePartyEnd::
 
 
@@ -547,9 +575,9 @@ wLinkPartyData::
 ; link player's name and party species are not patched,
 ; as they normally don't contain SERIAL_NO_DATA_BYTE
 wLinkPlayerName:: ds NAME_LENGTH
-wLinkPartyCount:: db
+wLinkPartyCount::   db
 wLinkPartySpecies:: ds PARTY_LENGTH
-wLinkPartyEnd:: db ; older code doesn't check PartyCount
+wLinkPartyEnd::     db ; older code doesn't check PartyCount
 
 ; Gen 2 link player party data
 wLinkPlayerPatchedData::
@@ -584,9 +612,9 @@ wLinkTimeCapsulePartyData::
 ; link player's name and party species are not patched,
 ; as they normally don't contain SERIAL_NO_DATA_BYTE
 wLinkTimeCapsulePlayerName:: ds NAME_LENGTH
-wLinkTimeCapsulePartyCount:: db
+wLinkTimeCapsulePartyCount::   db
 wLinkTimeCapsulePartySpecies:: ds PARTY_LENGTH
-wLinkTimeCapsulePartyEnd:: db ; older code doesn't check PartyCount
+wLinkTimeCapsulePartyEnd::     db ; older code doesn't check PartyCount
 
 ; Gen 1 (Time Capsule) link player party data
 wTimeCapsulePatchedData::
@@ -607,7 +635,7 @@ for n, 1, PARTY_LENGTH + 1
 wTimeCapsulePartyMon{d:n}Nickname:: ds MON_NAME_LENGTH
 endr
 
-	ds SERIAL_PADDING_LENGTH ; unused but written to (see engine/link/link.asm)
+wLinkTimeCapsulePartyPadding:: ds SERIAL_PADDING_LENGTH
 
 wLinkTimeCapsulePartyDataEnd::
 
@@ -2807,13 +2835,31 @@ wMagikarpRecordHoldersName:: ds NAME_LENGTH
 ; This union spans 451 bytes.
 UNION
 ; during a link session, other player's raw party data is initially stored here
-wLinkReceivedPartyData:: ds SERIAL_PREAMBLE_LENGTH + NAME_LENGTH + (1 + PARTY_LENGTH + 1) + 2 + (PARTYMON_STRUCT_LENGTH + NAME_LENGTH * 2) * PARTY_LENGTH + SERIAL_PADDING_LENGTH
+wLinkReceivedPartyData::
+wLinkReceivedPartyPreamble:: ds SERIAL_PREAMBLE_LENGTH
+wLinkReceivedPartyPlayerName:: ds NAME_LENGTH
+wLinkReceivedPartyPartyCount::   db
+wLinkReceivedPartyPartySpecies:: ds PARTY_LENGTH
+wLinkReceivedPartyPartyEnd::     db ; older code doesn't check PartyCount
+wLinkReceivedPartyPlayerID:: dw
+; wLinkReceivedPartyPlayerPartyMon1 - wLinkReceivedPartyPlayerPartyMon6
+for n, 1, PARTY_LENGTH + 1
+wLinkReceivedPartyPlayerPartyMon{d:n}:: party_struct wLinkReceivedPartyPlayerPartyMon{d:n}
+endr
+; wLinkReceivedPartyPlayerPartyMon1OT - wLinkReceivedPartyPlayerPartyMon6OT
+for n, 1, PARTY_LENGTH + 1
+wLinkReceivedPartyPlayerPartyMon{d:n}OT:: ds NAME_LENGTH
+endr
+; wLinkReceivedPartyPlayerPartyMon1Nickname - wLinkReceivedPartyPlayerPartyMon6Nickname
+for n, 1, PARTY_LENGTH + 1
+wLinkReceivedPartyPlayerPartyMon{d:n}Nickname:: ds MON_NAME_LENGTH
+endr
+wLinkReceivedPartyPadding:: ds SERIAL_PADDING_LENGTH
 wLinkReceivedPartyEnd:: db
 
 NEXTU
 wPokedexShowPointerAddr:: dw
 wPokedexShowPointerBank:: db
-	ds 3
 
 NEXTU
 wUnusedEggHatchFlag:: db
